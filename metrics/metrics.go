@@ -2,16 +2,27 @@ package metrics
 
 import (
 	"context"
-	"fmt"
 
 	pt "github.com/AntonShadrinNN/oiler-backup-base/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func reportStatus(ctx context.Context, coreAddr string, name string, success bool, timeStamp int64, secure bool) error {
+type MetricsReporter struct {
+	CoreAddr string
+	Secure   bool
+}
+
+func NewMetricsReporter(coreAddr string, secure bool) MetricsReporter {
+	return MetricsReporter{
+		CoreAddr: coreAddr,
+		Secure:   secure,
+	}
+}
+
+func (mr MetricsReporter) ReportStatus(ctx context.Context, metricName string, success bool, timeStamp int64) error {
 	opts := make([]grpc.DialOption, 0, 1)
-	if !secure {
+	if !mr.Secure {
 		opts = append(opts,
 			grpc.WithTransportCredentials(
 				insecure.NewCredentials(),
@@ -19,19 +30,18 @@ func reportStatus(ctx context.Context, coreAddr string, name string, success boo
 		)
 	}
 	conn, err := grpc.NewClient(
-		coreAddr,
+		mr.CoreAddr,
 		opts...,
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to connect to %s: %w", coreAddr, err)
+		return err
 	}
-	defer conn.Close()
 
 	client := pt.NewBackupMetricsServiceClient(conn)
 
 	req := pt.BackupMetrics{
-		BackupName: name,
+		BackupName: metricName,
 		Success:    success,
 		Timestamp:  timeStamp,
 	}
