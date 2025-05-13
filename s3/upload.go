@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net/http"
-	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -50,17 +50,11 @@ func NewS3Uploader(ctx context.Context, endpoint, accessKey, secretKey, region s
 	}, nil
 }
 
-func (u S3Uploader) Upload(ctx context.Context, bucketName, filePath, objectKey string) error {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return fmt.Errorf("failure during opening file: %w", err)
-	}
-	defer file.Close()
-
-	_, err = u.client.PutObject(ctx, &s3.PutObjectInput{
+func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fileContent io.Reader) error {
+	_, err := u.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
-		Body:   file,
+		Body:   fileContent,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to load file to S3: %w", err)
