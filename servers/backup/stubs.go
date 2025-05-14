@@ -14,11 +14,10 @@ type EnvGetter interface {
 }
 
 type JobsStub struct {
-	namePsfx         string
-	namespace        string
-	backuperImage    string
-	backuperSchedule string
-	restorerImage    string
+	namePsfx      string
+	namespace     string
+	backuperImage string
+	restorerImage string
 
 	restorerJob     *batchv1.Job
 	backuperCronJob *batchv1.CronJob
@@ -26,22 +25,21 @@ type JobsStub struct {
 
 func NewJobsStub(name, namespace, backuperImg, backuperSchedule, restorerImg string) JobsStub {
 	return JobsStub{
-		namePsfx:         name,
-		namespace:        namespace,
-		backuperImage:    backuperImg,
-		backuperSchedule: backuperSchedule,
-		restorerImage:    restorerImg,
+		namePsfx:      name,
+		namespace:     namespace,
+		backuperImage: backuperImg,
+		restorerImage: restorerImg,
 	}
 }
 
-func (js JobsStub) BuildBackuperCj(eg EnvGetter) *batchv1.CronJob {
+func (js JobsStub) BuildBackuperCj(schedule string, eg EnvGetter) *batchv1.CronJob {
 	return &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("backup-%s-%s", uuid.NewString()[:8], js.namePsfx),
 			Namespace: js.namespace,
 		},
 		Spec: batchv1.CronJobSpec{
-			Schedule: js.backuperSchedule,
+			Schedule: schedule,
 			JobTemplate: batchv1.JobTemplateSpec{
 				Spec: batchv1.JobSpec{
 					Template: corev1.PodTemplateSpec{
