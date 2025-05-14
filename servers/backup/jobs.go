@@ -18,6 +18,12 @@ type JobsCreator struct {
 	kubeClient *kubernetes.Clientset
 }
 
+func NewJobsCreator(kubeClient *kubernetes.Clientset) JobsCreator {
+	return JobsCreator{
+		kubeClient: kubeClient,
+	}
+}
+
 func (jc JobsCreator) CreateJob(ctx context.Context, jobSpec *batchv1.Job) (string, string, error) {
 	exCj, err := jc.kubeClient.BatchV1().Jobs(jobSpec.Namespace).Get(ctx, jobSpec.Name, metav1.GetOptions{})
 	if apierrors.IsAlreadyExists(err) {
