@@ -13,33 +13,27 @@ type EnvGetter interface {
 }
 
 type JobsStub struct {
-	namePsfx             string
-	namespace            string
-	backuperImage        string
-	backuperSchedule     string
-	restorerImage        string
-	commonEnvs           EnvGetter
-	backuperSpecificEnvs EnvGetter
-	restorerSpecificEnvs EnvGetter
+	namePsfx         string
+	namespace        string
+	backuperImage    string
+	backuperSchedule string
+	restorerImage    string
 
 	restorerJob     *batchv1.Job
 	backuperCronJob *batchv1.CronJob
 }
 
-func NewJobsStub(name, namespace, backuperImg, backuperSchedule, restorerImg string, ce, bse, rse EnvGetter) JobsStub {
+func NewJobsStub(name, namespace, backuperImg, backuperSchedule, restorerImg string) JobsStub {
 	return JobsStub{
-		namePsfx:             name,
-		namespace:            namespace,
-		backuperImage:        backuperImg,
-		backuperSchedule:     backuperSchedule,
-		restorerImage:        restorerImg,
-		commonEnvs:           ce,
-		backuperSpecificEnvs: bse,
-		restorerSpecificEnvs: rse,
+		namePsfx:         name,
+		namespace:        namespace,
+		backuperImage:    backuperImg,
+		backuperSchedule: backuperSchedule,
+		restorerImage:    restorerImg,
 	}
 }
 
-func (js JobsStub) BuildBackuperCj() *batchv1.CronJob {
+func (js JobsStub) BuildBackuperCj(eg EnvGetter) *batchv1.CronJob {
 	return &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("backup-%s", js.namePsfx),
@@ -56,7 +50,7 @@ func (js JobsStub) BuildBackuperCj() *batchv1.CronJob {
 									Name:            "backup-job",
 									Image:           js.backuperImage,
 									ImagePullPolicy: corev1.PullAlways,
-									Env:             append(js.commonEnvs.GetEnvs(), js.backuperSpecificEnvs.GetEnvs()...),
+									Env:             eg.GetEnvs(),
 								},
 							},
 							RestartPolicy: corev1.RestartPolicyNever,
@@ -68,7 +62,7 @@ func (js JobsStub) BuildBackuperCj() *batchv1.CronJob {
 	}
 }
 
-func (js JobsStub) BuildRestorerJob() *batchv1.Job {
+func (js JobsStub) BuildRestorerJob(eg EnvGetter) *batchv1.Job {
 	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("restore-%s", js.namePsfx),
@@ -82,7 +76,7 @@ func (js JobsStub) BuildRestorerJob() *batchv1.Job {
 							Name:            "backup-restore-job",
 							Image:           js.restorerImage,
 							ImagePullPolicy: corev1.PullAlways,
-							Env:             append(js.commonEnvs.GetEnvs(), js.restorerSpecificEnvs.GetEnvs()...),
+							Env:             eg.GetEnvs(),
 						},
 					},
 					RestartPolicy: corev1.RestartPolicyOnFailure,
