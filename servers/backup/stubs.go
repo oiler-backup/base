@@ -23,7 +23,7 @@ type JobsStub struct {
 	backuperCronJob *batchv1.CronJob
 }
 
-func NewJobsStub(name, namespace, backuperImg, backuperSchedule, restorerImg string) JobsStub {
+func NewJobsStub(name, namespace, backuperImg, restorerImg string) JobsStub {
 	return JobsStub{
 		namePsfx:      name,
 		namespace:     namespace,
