@@ -3,6 +3,7 @@ package backup
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,7 +37,7 @@ func NewJobsStub(name, namespace, backuperImg, backuperSchedule, restorerImg str
 func (js JobsStub) BuildBackuperCj(eg EnvGetter) *batchv1.CronJob {
 	return &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("backup-%s", js.namePsfx),
+			Name:      fmt.Sprintf("backup-%s-%s", uuid.NewString()[:8], js.namePsfx),
 			Namespace: js.namespace,
 		},
 		Spec: batchv1.CronJobSpec{
@@ -65,7 +66,7 @@ func (js JobsStub) BuildBackuperCj(eg EnvGetter) *batchv1.CronJob {
 func (js JobsStub) BuildRestorerJob(eg EnvGetter) *batchv1.Job {
 	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("restore-%s", js.namePsfx),
+			Name:      fmt.Sprintf("restore-%s-%s", uuid.NewString()[:8], js.namePsfx),
 			Namespace: js.restorerImage,
 		},
 		Spec: batchv1.JobSpec{
