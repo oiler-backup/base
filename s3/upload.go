@@ -44,7 +44,6 @@ func NewS3Uploader(ctx context.Context, endpoint, accessKey, secretKey, region s
 		}
 	})
 
-	// opts := "d"
 	return S3Uploader{
 		client: client,
 	}, nil
