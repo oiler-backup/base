@@ -21,6 +21,7 @@ message BackupRequest {
   string s3_bucket_name = 12;  // Имя бакета в MinIO
 
   string core_addr = 13; // Адрес core
+  int64 max_backup_count = 14;
 }
 
 message BackupResponse {
