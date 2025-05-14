@@ -4,7 +4,7 @@
 // 	protoc        v3.12.4
 // source: metrics.proto
 
-package metricsproto
+package proto
 
 import (
 	empty "github.com/golang/protobuf/ptypes/empty"
