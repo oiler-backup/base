@@ -30,13 +30,16 @@ func NewJobsStub(name, namespace, backuperImg, restorerImg string) JobsStub {
 }
 
 func (js JobsStub) BuildBackuperCj(schedule string, eg envgetters.EnvGetter) *batchv1.CronJob {
+	var historyLimit int32 = 1
 	return &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("backup-%s-%s", uuid.NewString()[:8], js.namePsfx),
 			Namespace: js.namespace,
 		},
 		Spec: batchv1.CronJobSpec{
-			Schedule: schedule,
+			SuccessfulJobsHistoryLimit: &historyLimit,
+			FailedJobsHistoryLimit:     &historyLimit,
+			Schedule:                   schedule,
 			JobTemplate: batchv1.JobTemplateSpec{
 				Spec: batchv1.JobSpec{
 					Template: corev1.PodTemplateSpec{
