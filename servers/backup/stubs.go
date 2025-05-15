@@ -3,6 +3,7 @@ package backup
 import (
 	"fmt"
 
+	"github.com/AntonShadrinNN/oiler-backup-base/servers/backup/envgetters"
 	"github.com/google/uuid"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -28,7 +29,7 @@ func NewJobsStub(name, namespace, backuperImg, restorerImg string) JobsStub {
 	}
 }
 
-func (js JobsStub) BuildBackuperCj(schedule string, eg EnvGetter) *batchv1.CronJob {
+func (js JobsStub) BuildBackuperCj(schedule string, eg envgetters.EnvGetter) *batchv1.CronJob {
 	return &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("backup-%s-%s", uuid.NewString()[:8], js.namePsfx),
@@ -57,7 +58,7 @@ func (js JobsStub) BuildBackuperCj(schedule string, eg EnvGetter) *batchv1.CronJ
 	}
 }
 
-func (js JobsStub) BuildRestorerJob(eg EnvGetter) *batchv1.Job {
+func (js JobsStub) BuildRestorerJob(eg envgetters.EnvGetter) *batchv1.Job {
 	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("restore-%s-%s", uuid.NewString()[:8], js.namePsfx),

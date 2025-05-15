@@ -1,33 +1,8 @@
-package backup
+package envgetters
 
 import (
-	"fmt"
-
 	corev1 "k8s.io/api/core/v1"
 )
-
-type EnvGetter interface {
-	GetEnvs() []corev1.EnvVar
-}
-
-type EnvGetterMerger struct {
-	envegetters []EnvGetter
-}
-
-func NewEnvGetterMerger(envgetters []EnvGetter) EnvGetterMerger {
-	return EnvGetterMerger{
-		envegetters: envgetters,
-	}
-}
-
-func (egm EnvGetterMerger) GetEnvs() []corev1.EnvVar {
-	envs := []corev1.EnvVar{}
-	for _, getter := range egm.envegetters {
-		envs = append(envs, getter.GetEnvs()...)
-	}
-
-	return envs
-}
 
 type CommonEnvGetter struct {
 	DbUri        string
@@ -83,32 +58,6 @@ func (ceg CommonEnvGetter) GetEnvs() []corev1.EnvVar {
 		{
 			Name:  "CORE_ADDR",
 			Value: ceg.CoreAddr,
-		},
-	}
-}
-
-type BackuperEnvGetter struct {
-	MaxBackupCount int
-}
-
-func (beg BackuperEnvGetter) GetEnvs() []corev1.EnvVar {
-	return []corev1.EnvVar{
-		{
-			Name:  "MAX_BACKUP_COUNT",
-			Value: fmt.Sprint(beg.MaxBackupCount),
-		},
-	}
-}
-
-type RestorerEnvGetter struct {
-	BackupRevision string
-}
-
-func (reg RestorerEnvGetter) GetEnvs() []corev1.EnvVar {
-	return []corev1.EnvVar{
-		{
-			Name:  "BACKUP_REVISION",
-			Value: reg.BackupRevision,
 		},
 	}
 }
