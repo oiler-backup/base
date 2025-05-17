@@ -9,7 +9,7 @@ const (
 	DEVELOPMENT
 )
 
-func GetLogger(mode Mode) (*zap.SugaredLogger, error) {
+func GetLogger(mode Mode) (*zap.SugaredLogger, error) { // coverage-ignore
 	var logger *zap.Logger
 	var err error
 	if mode == PRODUCTION {

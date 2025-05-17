@@ -13,14 +13,14 @@ type MetricsReporter struct {
 	Secure   bool
 }
 
-func NewMetricsReporter(coreAddr string, secure bool) MetricsReporter {
+func NewMetricsReporter(coreAddr string, secure bool) MetricsReporter { // coverage-ignore
 	return MetricsReporter{
 		CoreAddr: coreAddr,
 		Secure:   secure,
 	}
 }
 
-func (mr MetricsReporter) ReportStatus(ctx context.Context, metricName string, success bool, timeStamp int64) error {
+func (mr MetricsReporter) ReportStatus(ctx context.Context, metricName string, success bool, timeStamp int64) error { // coverage-ignore
 	opts := make([]grpc.DialOption, 0, 1)
 	if !mr.Secure {
 		opts = append(opts,

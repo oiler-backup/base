@@ -10,7 +10,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes"
 )
 
 type JobsCreationError = error
@@ -18,10 +17,10 @@ type JobsCreationError = error
 var ErrAlreadyExists JobsCreationError = fmt.Errorf("already exists")
 
 type JobsCreator struct {
-	kubeClient *kubernetes.Clientset
+	kubeClient KubeClient
 }
 
-func NewJobsCreator(kubeClient *kubernetes.Clientset) JobsCreator {
+func NewJobsCreator(kubeClient KubeClient) JobsCreator {
 	return JobsCreator{
 		kubeClient: kubeClient,
 	}
@@ -33,7 +32,7 @@ func (jc JobsCreator) CreateJob(ctx context.Context, jobSpec *batchv1.Job) (stri
 		return exCj.Name, exCj.Namespace, ErrAlreadyExists
 	}
 	if err != nil && !apierrors.IsNotFound(err) {
-		return "", "", fmt.Errorf("Failed to check cj %s existence: %w", jobSpec.Name, err)
+		return "", "", fmt.Errorf("failed to check cj %s existence: %w", jobSpec.Name, err)
 	}
 	generatedJob, err := jc.kubeClient.BatchV1().Jobs(jobSpec.Namespace).Create(ctx, jobSpec, metav1.CreateOptions{})
 	if err != nil {
@@ -49,7 +48,7 @@ func (jc JobsCreator) CreateCronJob(ctx context.Context, cronJobSpec *batchv1.Cr
 		return exCj.Name, exCj.Namespace, ErrAlreadyExists
 	}
 	if err != nil && !apierrors.IsNotFound(err) {
-		return "", "", fmt.Errorf("Failed to check cj %s existence: %+v", cronJobSpec.Name, err)
+		return "", "", fmt.Errorf("failed to check cj %s existence: %+v", cronJobSpec.Name, err)
 	}
 	generatedJob, err := jc.kubeClient.BatchV1().CronJobs(cronJobSpec.Namespace).Create(ctx, cronJobSpec, metav1.CreateOptions{})
 	if apierrors.IsAlreadyExists(err) {

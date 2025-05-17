@@ -21,7 +21,9 @@ func NewEnvGetterMerger(envgetters []EnvGetter) EnvGetterMerger {
 func (egm EnvGetterMerger) GetEnvs() []corev1.EnvVar {
 	envs := []corev1.EnvVar{}
 	for _, getter := range egm.envegetters {
-		envs = append(envs, getter.GetEnvs()...)
+		if getter != nil {
+			envs = append(envs, getter.GetEnvs()...)
+		}
 	}
 
 	return envs
