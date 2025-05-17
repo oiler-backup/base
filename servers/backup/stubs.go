@@ -15,9 +15,6 @@ type JobsStub struct {
 	namespace     string
 	backuperImage string
 	restorerImage string
-
-	restorerJob     *batchv1.Job
-	backuperCronJob *batchv1.CronJob
 }
 
 func NewJobsStub(name, namespace, backuperImg, restorerImg string) JobsStub {
@@ -65,7 +62,7 @@ func (js JobsStub) BuildRestorerJob(eg envgetters.EnvGetter) *batchv1.Job {
 	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("restore-%s-%s", uuid.NewString()[:8], js.namePsfx),
-			Namespace: js.restorerImage,
+			Namespace: js.namespace,
 		},
 		Spec: batchv1.JobSpec{
 			Template: corev1.PodTemplateSpec{
