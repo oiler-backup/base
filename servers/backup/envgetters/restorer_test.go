@@ -1,4 +1,3 @@
-// restorer_env_getter_test.go
 package envgetters
 
 import (

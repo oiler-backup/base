@@ -1,4 +1,3 @@
-// s3_test.go
 package s3
 
 import (

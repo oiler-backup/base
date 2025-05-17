@@ -10,6 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// JobsStub  provides methods to create manifests of Kubernetes Jobs and CronJobs.
 type JobsStub struct {
 	namePsfx      string
 	namespace     string
@@ -17,6 +18,9 @@ type JobsStub struct {
 	restorerImage string
 }
 
+// NewJobsStub is a constructor for JobsStub.
+// It requires to specify name which will be a postfix for generated resources name.
+// backuperImg and restorerImg will be placed in image section of a manifest.
 func NewJobsStub(name, namespace, backuperImg, restorerImg string) JobsStub {
 	return JobsStub{
 		namePsfx:      name,
@@ -26,6 +30,8 @@ func NewJobsStub(name, namespace, backuperImg, restorerImg string) JobsStub {
 	}
 }
 
+// BuildBackuperCj returns manifest of a backuper CronJob passing envs defined by
+// eg to underlying CronJob.
 func (js JobsStub) BuildBackuperCj(schedule string, eg envgetters.EnvGetter) *batchv1.CronJob {
 	var historyLimit int32 = 1
 	return &batchv1.CronJob{
@@ -58,6 +64,8 @@ func (js JobsStub) BuildBackuperCj(schedule string, eg envgetters.EnvGetter) *ba
 	}
 }
 
+// BuildRestorerJob returns manifest of a restorer Job passing envs defined by
+// eg to underlying Job.
 func (js JobsStub) BuildRestorerJob(eg envgetters.EnvGetter) *batchv1.Job {
 	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
