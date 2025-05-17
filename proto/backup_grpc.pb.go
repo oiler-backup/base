@@ -19,9 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	BackupService_Backup_FullMethodName     = "/backup.BackupService/Backup"
-	BackupService_Restore_FullMethodName    = "/backup.BackupService/Restore"
-	BackupService_GetMetrics_FullMethodName = "/backup.BackupService/GetMetrics"
+	BackupService_Backup_FullMethodName  = "/backup.BackupService/Backup"
+	BackupService_Update_FullMethodName  = "/backup.BackupService/Update"
+	BackupService_Restore_FullMethodName = "/backup.BackupService/Restore"
 )
 
 // BackupServiceClient is the client API for BackupService service.
@@ -29,8 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BackupServiceClient interface {
 	Backup(ctx context.Context, in *BackupRequest, opts ...grpc.CallOption) (*BackupResponse, error)
+	Update(ctx context.Context, in *UpdateBackupRequest, opts ...grpc.CallOption) (*BackupResponse, error)
 	Restore(ctx context.Context, in *BackupRestore, opts ...grpc.CallOption) (*BackupRestoreResponse, error)
-	GetMetrics(ctx context.Context, in *MetricsRequest, opts ...grpc.CallOption) (*MetricsResponse, error)
 }
 
 type backupServiceClient struct {
@@ -51,20 +51,20 @@ func (c *backupServiceClient) Backup(ctx context.Context, in *BackupRequest, opt
 	return out, nil
 }
 
-func (c *backupServiceClient) Restore(ctx context.Context, in *BackupRestore, opts ...grpc.CallOption) (*BackupRestoreResponse, error) {
+func (c *backupServiceClient) Update(ctx context.Context, in *UpdateBackupRequest, opts ...grpc.CallOption) (*BackupResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BackupRestoreResponse)
-	err := c.cc.Invoke(ctx, BackupService_Restore_FullMethodName, in, out, cOpts...)
+	out := new(BackupResponse)
+	err := c.cc.Invoke(ctx, BackupService_Update_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *backupServiceClient) GetMetrics(ctx context.Context, in *MetricsRequest, opts ...grpc.CallOption) (*MetricsResponse, error) {
+func (c *backupServiceClient) Restore(ctx context.Context, in *BackupRestore, opts ...grpc.CallOption) (*BackupRestoreResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MetricsResponse)
-	err := c.cc.Invoke(ctx, BackupService_GetMetrics_FullMethodName, in, out, cOpts...)
+	out := new(BackupRestoreResponse)
+	err := c.cc.Invoke(ctx, BackupService_Restore_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,8 +76,8 @@ func (c *backupServiceClient) GetMetrics(ctx context.Context, in *MetricsRequest
 // for forward compatibility.
 type BackupServiceServer interface {
 	Backup(context.Context, *BackupRequest) (*BackupResponse, error)
+	Update(context.Context, *UpdateBackupRequest) (*BackupResponse, error)
 	Restore(context.Context, *BackupRestore) (*BackupRestoreResponse, error)
-	GetMetrics(context.Context, *MetricsRequest) (*MetricsResponse, error)
 	mustEmbedUnimplementedBackupServiceServer()
 }
 
@@ -91,11 +91,11 @@ type UnimplementedBackupServiceServer struct{}
 func (UnimplementedBackupServiceServer) Backup(context.Context, *BackupRequest) (*BackupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Backup not implemented")
 }
+func (UnimplementedBackupServiceServer) Update(context.Context, *UpdateBackupRequest) (*BackupResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
 func (UnimplementedBackupServiceServer) Restore(context.Context, *BackupRestore) (*BackupRestoreResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Restore not implemented")
-}
-func (UnimplementedBackupServiceServer) GetMetrics(context.Context, *MetricsRequest) (*MetricsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetMetrics not implemented")
 }
 func (UnimplementedBackupServiceServer) mustEmbedUnimplementedBackupServiceServer() {}
 func (UnimplementedBackupServiceServer) testEmbeddedByValue()                       {}
@@ -136,6 +136,24 @@ func _BackupService_Backup_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackupService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBackupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackupServiceServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackupService_Update_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackupServiceServer).Update(ctx, req.(*UpdateBackupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackupService_Restore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BackupRestore)
 	if err := dec(in); err != nil {
@@ -154,24 +172,6 @@ func _BackupService_Restore_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackupService_GetMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MetricsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackupServiceServer).GetMetrics(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackupService_GetMetrics_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackupServiceServer).GetMetrics(ctx, req.(*MetricsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // BackupService_ServiceDesc is the grpc.ServiceDesc for BackupService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -184,12 +184,12 @@ var BackupService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackupService_Backup_Handler,
 		},
 		{
-			MethodName: "Restore",
-			Handler:    _BackupService_Restore_Handler,
+			MethodName: "Update",
+			Handler:    _BackupService_Update_Handler,
 		},
 		{
-			MethodName: "GetMetrics",
-			Handler:    _BackupService_GetMetrics_Handler,
+			MethodName: "Restore",
+			Handler:    _BackupService_Restore_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

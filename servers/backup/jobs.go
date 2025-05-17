@@ -2,11 +2,14 @@ package backup
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -56,4 +59,43 @@ func (jc JobsCreator) CreateCronJob(ctx context.Context, cronJobSpec *batchv1.Cr
 	}
 
 	return generatedJob.Name, generatedJob.Namespace, nil
+}
+
+func (jc JobsCreator) UpdateCronJob(ctx context.Context, cronJobName, cronJobNamespace string, newEnvs []corev1.EnvVar) error {
+	patch := map[string]interface{}{
+		"spec": map[string]interface{}{
+			"jobTemplate": map[string]interface{}{
+				"spec": map[string]interface{}{
+					"template": map[string]interface{}{
+						"spec": map[string]interface{}{
+							"containers": []map[string]interface{}{
+								{
+									"name": "backup-job",
+									"env":  newEnvs,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	patchBytes, err := json.Marshal(patch)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = jc.kubeClient.BatchV1().CronJobs(cronJobNamespace).Patch(
+		ctx,
+		cronJobName,
+		types.StrategicMergePatchType,
+		patchBytes,
+		metav1.PatchOptions{},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
