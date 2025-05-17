@@ -1,4 +1,3 @@
-// envgetters_test.go
 package envgetters
 
 import (

@@ -6,8 +6,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+// BackuperEnvGetter describes specific variables for backuper instances.
 type BackuperEnvGetter struct {
-	MaxBackupCount int
+	MaxBackupCount int // Max allowed number of backups to be stored in storage.
 }
 
 func (beg BackuperEnvGetter) GetEnvs() []corev1.EnvVar {

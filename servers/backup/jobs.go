@@ -12,20 +12,25 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+// JobsCreationError is required for more verbosity.
 type JobsCreationError = error
 
+// ErrAlreadyExists is a default error in case any resource is already created.
 var ErrAlreadyExists JobsCreationError = fmt.Errorf("already exists")
 
+// JobsCreator creates Kubernetes Jobs and CronJobs and applies them to cluster.
 type JobsCreator struct {
-	kubeClient KubeClient
+	kubeClient IKubeClient
 }
 
-func NewJobsCreator(kubeClient KubeClient) JobsCreator {
+// NewJobsCreator is a constructor for JobsCreator.
+func NewJobsCreator(kubeClient IKubeClient) JobsCreator {
 	return JobsCreator{
 		kubeClient: kubeClient,
 	}
 }
 
+// CreateJob creates Kubernetes Job and returns its name and namespace.
 func (jc JobsCreator) CreateJob(ctx context.Context, jobSpec *batchv1.Job) (string, string, error) {
 	exCj, err := jc.kubeClient.BatchV1().Jobs(jobSpec.Namespace).Get(ctx, jobSpec.Name, metav1.GetOptions{})
 	if apierrors.IsAlreadyExists(err) {
@@ -42,6 +47,7 @@ func (jc JobsCreator) CreateJob(ctx context.Context, jobSpec *batchv1.Job) (stri
 	return generatedJob.Name, generatedJob.Namespace, nil
 }
 
+// CreateCronJob creates Kubernetes Job and returns its name and namespace.
 func (jc JobsCreator) CreateCronJob(ctx context.Context, cronJobSpec *batchv1.CronJob) (string, string, error) {
 	exCj, err := jc.kubeClient.BatchV1().CronJobs(cronJobSpec.Namespace).Get(ctx, cronJobSpec.Name, metav1.GetOptions{})
 	if apierrors.IsAlreadyExists(err) {
@@ -60,6 +66,8 @@ func (jc JobsCreator) CreateCronJob(ctx context.Context, cronJobSpec *batchv1.Cr
 	return generatedJob.Name, generatedJob.Namespace, nil
 }
 
+// UpdateCronJob updated CronJob cronJobName in cronJobNamespace by passing newEnvs to environment variables.
+// Overrides old keys.
 func (jc JobsCreator) UpdateCronJob(ctx context.Context, cronJobName, cronJobNamespace string, newEnvs []corev1.EnvVar) error {
 	patch := map[string]interface{}{
 		"spec": map[string]interface{}{

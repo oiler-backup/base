@@ -4,17 +4,18 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+// CommonEnvGetter describes common variables for each adapter.
 type CommonEnvGetter struct {
-	DbUri        string
-	DbPort       string
-	DbUser       string
-	DbPass       string
-	DbName       string
-	S3Endpoint   string
-	S3AccessKey  string
-	S3SecretKey  string
-	S3BucketName string
-	CoreAddr     string
+	DbUri        string // Database uri
+	DbPort       string // Database port
+	DbUser       string // Database user
+	DbPass       string // Database password
+	DbName       string // Database name
+	S3Endpoint   string // S3-compatible storage endpoint
+	S3AccessKey  string // S3-compatible storage access key
+	S3SecretKey  string // S3-compatible storage secret key
+	S3BucketName string // S3-compatible storage bucket name
+	CoreAddr     string // Uri of Kubernetes Operator core, includes port
 }
 
 func (ceg CommonEnvGetter) GetEnvs() []corev1.EnvVar {
