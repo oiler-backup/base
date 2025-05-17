@@ -1,4 +1,3 @@
-// s3_upload_cleaner_test.go
 package s3
 
 import (

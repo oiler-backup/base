@@ -1,4 +1,3 @@
-// s3_mock.go
 package s3
 
 import (
