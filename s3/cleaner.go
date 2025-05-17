@@ -15,10 +15,10 @@ import (
 )
 
 type S3Cleaner struct {
-	client *s3.Client
+	client IS3Client
 }
 
-func NewS3Cleaner(ctx context.Context, endpoint, accessKey, secretKey, region string, secure bool) (S3Cleaner, error) {
+func NewS3Cleaner(ctx context.Context, endpoint, accessKey, secretKey, region string, secure bool) (S3Cleaner, error) { // coverage-ignore
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion(region),
 		config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
@@ -57,7 +57,7 @@ func (u S3Cleaner) Clean(ctx context.Context, bucketName, backupDir string, maxB
 		Prefix: aws.String(ensureTrailingSlash(backupDir)),
 	})
 	if err != nil {
-		return fmt.Errorf("Failed to list objects: %+v", err)
+		return fmt.Errorf("failed to list objects: %+v", err)
 	}
 
 	objects := listOutput.Contents
@@ -81,7 +81,7 @@ func (u S3Cleaner) Clean(ctx context.Context, bucketName, backupDir string, maxB
 			},
 		})
 		if err != nil {
-			return fmt.Errorf("Failure during objects deletion: %+v", err)
+			return fmt.Errorf("failure during objects deletion: %+v", err)
 		}
 	}
 
