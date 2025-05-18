@@ -2,14 +2,11 @@ package s3
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
-	"net/http"
 	"sort"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
@@ -27,33 +24,10 @@ type S3Cleaner struct {
 // region must match your aws-region or might be fictios for other solutions.
 // If you want to use TLS/SSL encrytion, set secure to true.
 func NewS3Cleaner(ctx context.Context, endpoint, accessKey, secretKey, region string, secure bool) (S3Cleaner, error) { // coverage-ignore
-	cfg, err := config.LoadDefaultConfig(ctx,
-		config.WithRegion(region),
-		config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-			return aws.Credentials{
-				AccessKeyID:     accessKey,
-				SecretAccessKey: secretKey,
-			}, nil
-		})),
-	)
+	client, err := NewS3Client(ctx, endpoint, accessKey, secretKey, region, secure)
 	if err != nil {
 		return S3Cleaner{}, err
 	}
-
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
-		o.BaseEndpoint = aws.String(endpoint)
-		if !secure {
-			o.HTTPClient = &http.Client{
-				Transport: &http.Transport{
-					TLSClientConfig: &tls.Config{
-						InsecureSkipVerify: true,
-					},
-				},
-			}
-		}
-	})
-
 	return S3Cleaner{
 		client: client,
 	}, nil
