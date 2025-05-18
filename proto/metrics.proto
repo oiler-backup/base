@@ -12,5 +12,5 @@ service BackupMetricsService {
 message BackupMetrics {
     string backup_name = 1;
     bool success = 2;
-    int64 timestamp = 3;
+    int64 time_elapsed = 3;
 }
