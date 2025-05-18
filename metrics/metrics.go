@@ -8,7 +8,7 @@ package metrics
 import (
 	"context"
 
-	pt "github.com/AntonShadrinNN/oiler-backup-base/proto"
+	pt "github.com/oiler-backup/base/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
