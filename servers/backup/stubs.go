@@ -3,8 +3,8 @@ package backup
 import (
 	"fmt"
 
-	"github.com/AntonShadrinNN/oiler-backup-base/servers/backup/envgetters"
 	"github.com/google/uuid"
+	"github.com/oiler-backup/base/servers/backup/envgetters"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

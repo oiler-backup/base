@@ -1,4 +1,4 @@
-module github.com/AntonShadrinNN/oiler-backup-base
+module github.com/oiler-backup/base
 
 go 1.24.2
 

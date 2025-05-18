@@ -3,7 +3,7 @@ package backup
 import (
 	"context"
 
-	"github.com/AntonShadrinNN/oiler-backup-base/servers/backup/envgetters"
+	"github.com/oiler-backup/base/servers/backup/envgetters"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/client-go/kubernetes/typed/batch/v1"
