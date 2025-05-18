@@ -31,7 +31,7 @@ func NewMetricsReporter(coreAddr string, secure bool) MetricsReporter { // cover
 }
 
 // ReportStatus sends a message to Kubernetes Operator core with parameters required to generate Prometheus Metrics.
-func (mr MetricsReporter) ReportStatus(ctx context.Context, metricName string, success bool, timeStamp int64) error { // coverage-ignore
+func (mr MetricsReporter) ReportStatus(ctx context.Context, metricName string, success bool, timeElapsed int64) error { // coverage-ignore
 	opts := make([]grpc.DialOption, 0, 1)
 	if !mr.Secure {
 		opts = append(opts,
@@ -54,7 +54,7 @@ func (mr MetricsReporter) ReportStatus(ctx context.Context, metricName string, s
 	req := pt.BackupMetrics{
 		BackupName:  metricName,
 		Success:     success,
-		TimeElapsed: timeStamp,
+		TimeElapsed: timeElapsed,
 	}
 
 	_, err = client.ReportSuccessfulBackup(ctx, &req)
