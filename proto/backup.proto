@@ -51,6 +51,7 @@ message BackupRestore {
   string s3_bucket_name = 12;  // Имя бакета в MinIO
 
   string backupRevision = 13; // Версия бэкапа для восстановления
+  string core_addr = 14; // Адрес core
 }
 
 message BackupRestoreResponse {
