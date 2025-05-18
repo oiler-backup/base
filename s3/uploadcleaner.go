@@ -39,13 +39,14 @@ func NewS3UploadCleaner(ctx context.Context, endpoint, accessKey, secretKey, reg
 // CleanAndUpload cleans storage before uploading a file.
 // Refer to [S3Uploader] and [S3Cleaner] for more information
 func (uc S3UploadCleaner) CleanAndUpload(ctx context.Context, bucketName, backupDir string, maxBackupCount int, fileName string, fileContent io.Reader) error {
-	err := uc.c.Clean(ctx, bucketName, backupDir, maxBackupCount)
-	if err != nil {
-		return fmt.Errorf("failed to clean S3: %+v", err)
-	}
-	err = uc.u.Upload(ctx, bucketName, fileName, fileContent)
+	err := uc.u.Upload(ctx, bucketName, fileName, fileContent)
 	if err != nil {
 		return fmt.Errorf("failed to upload object to S3: %+v", err)
+	}
+
+	err = uc.c.Clean(ctx, bucketName, backupDir, maxBackupCount)
+	if err != nil {
+		return fmt.Errorf("failed to clean S3: %+v", err)
 	}
 
 	return nil
