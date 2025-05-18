@@ -52,9 +52,9 @@ func (mr MetricsReporter) ReportStatus(ctx context.Context, metricName string, s
 	client := pt.NewBackupMetricsServiceClient(conn)
 
 	req := pt.BackupMetrics{
-		BackupName: metricName,
-		Success:    success,
-		Timestamp:  timeStamp,
+		BackupName:  metricName,
+		Success:     success,
+		TimeElapsed: timeStamp,
 	}
 
 	_, err = client.ReportSuccessfulBackup(ctx, &req)
