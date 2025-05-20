@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sort"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -98,6 +99,9 @@ func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fi
 
 	wg.Wait()
 
+	sort.Slice(completedParts, func(i, j int) bool {
+		return *completedParts[i].PartNumber < *completedParts[j].PartNumber
+	})
 	completeInput := &s3.CompleteMultipartUploadInput{
 		Bucket:   aws.String(bucketName),
 		Key:      aws.String(objectKey),
