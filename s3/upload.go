@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -34,6 +35,7 @@ func NewS3Uploader(ctx context.Context, endpoint, accessKey, secretKey, region s
 
 // Upload uploads a single file to storage.
 func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fileContent io.Reader) error {
+	log.Println("Uploading")
 	_, err := u.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
@@ -42,6 +44,7 @@ func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fi
 	if err != nil {
 		return fmt.Errorf("failed to load file to S3: %w", err)
 	}
+	log.Println("Uploaded")
 
 	return nil
 }
