@@ -65,7 +65,7 @@ func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fi
 			break
 		}
 		if err != nil && err != io.EOF {
-			fmt.Println("Ошибка чтения файла:", err)
+			fmt.Println("Failed while reading file content:", err)
 			return err
 		}
 
@@ -82,7 +82,7 @@ func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fi
 			}
 			partResp, err := u.client.UploadPart(ctx, partInput)
 			if err != nil {
-				fmt.Printf("Ошибка загрузки части %d: %v\n", partNumber, err)
+				fmt.Printf("Failed to load part %d: %v\n", partNumber, err)
 				return
 			}
 
@@ -112,17 +112,9 @@ func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fi
 	}
 	_, err = u.client.CompleteMultipartUpload(ctx, completeInput)
 	if err != nil {
-		fmt.Println("Ошибка завершения multipart upload:", err)
+		fmt.Println("Failed to finish multipart upload:", err)
 		return err
 	}
-	// _, err := u.client.PutObject(ctx, &s3.PutObjectInput{
-	// 	Bucket: aws.String(bucketName),
-	// 	Key:    aws.String(objectKey),
-	// 	Body:   fileContent,
-	// })
-	// if err != nil {
-	// 	return fmt.Errorf("failed to load file to S3: %w", err)
-	// }
 
 	return nil
 }

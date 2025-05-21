@@ -3,6 +3,7 @@ package s3
 import (
 	"context"
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 
@@ -36,6 +37,7 @@ func NewS3Cleaner(ctx context.Context, endpoint, accessKey, secretKey, region st
 // Clean deletes oldest files to match maxBackupCount.
 // backupDir might be either with or without trailing slash.
 func (u S3Cleaner) Clean(ctx context.Context, bucketName, backupDir string, maxBackupCount int) error {
+	log.Println(bucketName, backupDir, maxBackupCount)
 	listOutput, err := u.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
 		Bucket: aws.String(bucketName),
 		Prefix: aws.String(ensureTrailingSlash(backupDir)),

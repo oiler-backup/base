@@ -2,7 +2,7 @@ package s3
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -35,7 +35,7 @@ func TestCleanAndUpload_Success(t *testing.T) {
 	mockUploader.AssertExpectations(t)
 }
 
-func TestCleanAndUpload_CleanError(t *testing.T) {
+func TestCleanAndUpload_UploadError(t *testing.T) {
 	mockUploader := new(MockS3Uploader)
 	mockCleaner := new(MockS3Cleaner)
 
@@ -44,17 +44,16 @@ func TestCleanAndUpload_CleanError(t *testing.T) {
 		c: mockCleaner,
 	}
 
-	expectedErr := errors.New("clean failed")
-	mockCleaner.On("Clean", mock.Anything, "test-bucket", "backups/", 5).Return(expectedErr)
-
+	expectedErr := fmt.Errorf("upload failed")
+	mockUploader.On("Upload", mock.Anything, "test-bucket", "backup.tar.gz", nil).Return(expectedErr)
 	err := uploadCleaner.CleanAndUpload(context.Background(), "test-bucket", "backups/", 5, "backup.tar.gz", nil)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to clean S3")
-	mockUploader.AssertNotCalled(t, "Upload")
+	require.Contains(t, err.Error(), "failed to upload object to S3")
+	mockCleaner.AssertNotCalled(t, "Clean")
 }
 
-func TestCleanAndUpload_UploadError(t *testing.T) {
+func TestCleanAndUpload_CleanError(t *testing.T) {
 	mockUploader := new(MockS3Uploader)
 	mockCleaner := new(MockS3Cleaner)
 
@@ -68,14 +67,14 @@ func TestCleanAndUpload_UploadError(t *testing.T) {
 	maxBackupCount := 5
 	fileName := "backup.tar.gz"
 	fileContent := strings.NewReader("some content")
-
-	mockCleaner.On("Clean", mock.Anything, bucketName, backupDir, maxBackupCount).Return(nil)
-	mockUploader.On("Upload", mock.Anything, bucketName, fileName, fileContent).Return(errors.New("upload failed"))
+	expectedErr := fmt.Errorf("clean error")
+	mockUploader.On("Upload", mock.Anything, bucketName, fileName, fileContent).Return(nil)
+	mockCleaner.On("Clean", mock.Anything, bucketName, backupDir, maxBackupCount).Return(expectedErr)
 
 	err := uploadCleaner.CleanAndUpload(context.Background(), bucketName, backupDir, maxBackupCount, fileName, fileContent)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to upload object to S3")
-	mockCleaner.AssertExpectations(t)
+	require.Contains(t, err.Error(), "failed to clean S3")
 	mockUploader.AssertExpectations(t)
+	mockCleaner.AssertExpectations(t)
 }
