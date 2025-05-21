@@ -1,12 +1,20 @@
 package s3
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"sort"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+)
+
+const (
+	partSize = 5 * 1024 * 1024
 )
 
 // A S3Uploader provides methods to upload file to s3-compatible storage.
@@ -30,17 +38,82 @@ func NewS3Uploader(ctx context.Context, endpoint, accessKey, secretKey, region s
 	return S3Uploader{
 		client: client,
 	}, nil
+
 }
 
 // Upload uploads a single file to storage.
 func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fileContent io.Reader) error {
-	_, err := u.client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(objectKey),
-		Body:   fileContent,
+	createOutput, err := u.client.CreateMultipartUpload(ctx, &s3.CreateMultipartUploadInput{
+		Bucket: &bucketName,
+		Key:    &objectKey,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to load file to S3: %w", err)
+		return err
+	}
+
+	uploadID := createOutput.UploadId
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	completedParts := []types.CompletedPart{}
+
+	buffer := make([]byte, partSize)
+	partNumber := 1
+
+	for {
+		bytesRead, err := fileContent.Read(buffer)
+		if bytesRead == 0 || err == io.EOF {
+			break
+		}
+		if err != nil && err != io.EOF {
+			fmt.Println("Failed while reading file content:", err)
+			return err
+		}
+
+		wg.Add(1)
+		go func(partNumber int32, data []byte, bytesRead int) {
+			defer wg.Done()
+
+			partInput := &s3.UploadPartInput{
+				Bucket:     aws.String(bucketName),
+				Key:        aws.String(objectKey),
+				PartNumber: &partNumber,
+				UploadId:   uploadID,
+				Body:       bytes.NewReader(data[:bytesRead]),
+			}
+			partResp, err := u.client.UploadPart(ctx, partInput)
+			if err != nil {
+				fmt.Printf("Failed to load part %d: %v\n", partNumber, err)
+				return
+			}
+
+			mu.Lock()
+			completedParts = append(completedParts, types.CompletedPart{
+				ETag:       partResp.ETag,
+				PartNumber: &partNumber,
+			})
+			mu.Unlock()
+		}(int32(partNumber), buffer, bytesRead)
+
+		partNumber++
+	}
+
+	wg.Wait()
+
+	sort.Slice(completedParts, func(i, j int) bool {
+		return *completedParts[i].PartNumber < *completedParts[j].PartNumber
+	})
+	completeInput := &s3.CompleteMultipartUploadInput{
+		Bucket:   aws.String(bucketName),
+		Key:      aws.String(objectKey),
+		UploadId: uploadID,
+		MultipartUpload: &types.CompletedMultipartUpload{
+			Parts: completedParts,
+		},
+	}
+	_, err = u.client.CompleteMultipartUpload(ctx, completeInput)
+	if err != nil {
+		fmt.Println("Failed to finish multipart upload:", err)
+		return err
 	}
 
 	return nil
