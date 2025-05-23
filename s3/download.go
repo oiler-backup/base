@@ -76,22 +76,19 @@ func (d S3Downloader) GetBackupByRevision(ctx context.Context, backupRevision in
 		Prefix: aws.String(ensureTrailingSlash(backupDir)),
 	})
 
-	log.Println("list output")
-	log.Printf("%+v\n\n\n", listOutput)
 	if err != nil {
 		return "", fmt.Errorf("failed to list objects: %+v", err)
 	}
 
 	objects := listOutput.Contents
-	log.Println("Contents")
-	log.Printf("%+v\n\n\n", objects)
 	var selectedBackupKey string
 	if backupRevision < len(objects) {
 		sort.Slice(objects, func(i, j int) bool {
 			return objects[j].LastModified.Before(*objects[i].LastModified)
 		})
 		selectedBackupKey = *objects[backupRevision].Key
-		fmt.Printf("%s\n\n\\n", *objects[backupRevision].Key)
+		log.Println("Key")
+		log.Println(selectedBackupKey)
 	} else {
 		return "", fmt.Errorf("BACKUP_REVISION (%d) is out of range. Available backups: %d", backupRevision, len(objects))
 	}
