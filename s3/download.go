@@ -32,13 +32,16 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 	var selectedBackupKey string
 
 	backupRevision, err := strconv.Atoi(backupRevisionStr)
+	log.Println("revision")
 	// Если backupRevisionStr - число, выбираем бэкап по индексу
 	if err == nil && backupRevision >= 0 {
+		log.Println("Then")
 		selectedBackupKey, err = d.GetBackupByRevision(ctx, backupRevision, databaseName, bucketName)
 		if err != nil {
 			return fmt.Errorf("failed to list backup files from S3: %v", err)
 		}
 	} else {
+		log.Println("Wrong")
 		// Если backupRevisionStr - строка, ищем бэкап с таким именем
 		selectedBackupKey = backupRevisionStr
 	}
