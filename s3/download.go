@@ -48,7 +48,7 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 
 	resp, err := d.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
-		Key:    aws.String(fmt.Sprintf("%s/%s", databaseName, selectedBackupKey)),
+		Key:    aws.String(selectedBackupKey),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to get S3 object: %v", err)
