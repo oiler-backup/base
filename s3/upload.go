@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"sort"
 	"sync"
 
@@ -72,7 +73,7 @@ func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fi
 		wg.Add(1)
 		go func(partNumber int32, data []byte, bytesRead int) {
 			defer wg.Done()
-
+			log.Println("in go func")
 			partInput := &s3.UploadPartInput{
 				Bucket:     aws.String(bucketName),
 				Key:        aws.String(objectKey),
@@ -86,12 +87,15 @@ func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fi
 				return
 			}
 
+			log.Println("uploaded part")
+
 			mu.Lock()
 			completedParts = append(completedParts, types.CompletedPart{
 				ETag:       partResp.ETag,
 				PartNumber: &partNumber,
 			})
 			mu.Unlock()
+			log.Println("go func ended")
 		}(int32(partNumber), buffer, bytesRead)
 
 		partNumber++
