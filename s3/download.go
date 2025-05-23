@@ -42,6 +42,7 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 		selectedBackupKey = backupRevisionStr
 	}
 
+	fmt.Println(selectedBackupKey)
 	resp, err := d.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(fmt.Sprintf("%s/%s", databaseName, selectedBackupKey)),
@@ -71,6 +72,8 @@ func (d S3Downloader) GetBackupByRevision(ctx context.Context, backupRevision in
 		Bucket: aws.String(bucketName),
 		Prefix: aws.String(ensureTrailingSlash(backupDir)),
 	})
+
+	fmt.Println(backupDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to list objects: %+v", err)
 	}
