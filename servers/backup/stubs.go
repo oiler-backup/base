@@ -34,12 +34,14 @@ func NewJobsStub(name, namespace, backuperImg, restorerImg string) JobsStub {
 // eg to underlying CronJob.
 func (js JobsStub) BuildBackuperCj(schedule string, eg envgetters.EnvGetter) *batchv1.CronJob {
 	var historyLimit int32 = 1
+	var backoffLimit int32 = 0
 	return &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("backup-%s-%s", uuid.NewString()[:8], js.namePsfx),
 			Namespace: js.namespace,
 		},
 		Spec: batchv1.CronJobSpec{
+			ConcurrencyPolicy:          batchv1.ForbidConcurrent,
 			SuccessfulJobsHistoryLimit: &historyLimit,
 			FailedJobsHistoryLimit:     &historyLimit,
 			Schedule:                   schedule,
@@ -58,6 +60,7 @@ func (js JobsStub) BuildBackuperCj(schedule string, eg envgetters.EnvGetter) *ba
 							RestartPolicy: corev1.RestartPolicyNever,
 						},
 					},
+					BackoffLimit: &backoffLimit,
 				},
 			},
 		},

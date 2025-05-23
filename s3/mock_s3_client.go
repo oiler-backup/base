@@ -36,6 +36,11 @@ func (m *MockS3Client) DeleteObjects(ctx context.Context, params *s3.DeleteObjec
 	return args.Get(0).(*s3.DeleteObjectsOutput), args.Error(1)
 }
 
+func (m *MockS3Client) GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
+	args := m.Called(ctx, params)
+	return args.Get(0).(*s3.GetObjectOutput), args.Error(1)
+}
+
 type MockS3Uploader struct {
 	mock.Mock
 }
