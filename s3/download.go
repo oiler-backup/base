@@ -77,12 +77,13 @@ func (d S3Downloader) GetBackupByRevision(ctx context.Context, backupRevision in
 		Prefix: aws.String(ensureTrailingSlash(backupDir)),
 	})
 
-	fmt.Println(backupDir)
+	fmt.Printf("%+v\n\n\n", listOutput)
 	if err != nil {
 		return "", fmt.Errorf("failed to list objects: %+v", err)
 	}
 
 	objects := listOutput.Contents
+	fmt.Printf("%+v\n\n\n", objects)
 	var selectedBackupKey string
 	if backupRevision < len(objects) {
 		sort.Slice(objects, func(i, j int) bool {
