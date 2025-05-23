@@ -3,6 +3,7 @@ package s3
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"sort"
 	"strconv"
@@ -42,11 +43,6 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 		selectedBackupKey = backupRevisionStr
 	}
 
-	fmt.Println("Selected")
-	fmt.Println(selectedBackupKey)
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
 	resp, err := d.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(fmt.Sprintf("%s/%s", databaseName, selectedBackupKey)),
@@ -77,13 +73,15 @@ func (d S3Downloader) GetBackupByRevision(ctx context.Context, backupRevision in
 		Prefix: aws.String(ensureTrailingSlash(backupDir)),
 	})
 
-	fmt.Printf("%+v\n\n\n", listOutput)
+	log.Println("list output")
+	log.Printf("%+v\n\n\n", listOutput)
 	if err != nil {
 		return "", fmt.Errorf("failed to list objects: %+v", err)
 	}
 
 	objects := listOutput.Contents
-	fmt.Printf("%+v\n\n\n", objects)
+	log.Println("Contents")
+	log.Printf("%+v\n\n\n", objects)
 	var selectedBackupKey string
 	if backupRevision < len(objects) {
 		sort.Slice(objects, func(i, j int) bool {
