@@ -91,7 +91,7 @@ func (d S3Downloader) GetBackupByRevision(ctx context.Context, backupRevision in
 			return objects[j].LastModified.Before(*objects[i].LastModified)
 		})
 		selectedBackupKey = *objects[backupRevision].Key
-		fmt.Printf("%+v\n\n\\n", objects[backupRevision])
+		fmt.Printf("%s\n\n\\n", *objects[backupRevision].Key)
 	} else {
 		return "", fmt.Errorf("BACKUP_REVISION (%d) is out of range. Available backups: %d", backupRevision, len(objects))
 	}
