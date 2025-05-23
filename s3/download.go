@@ -12,7 +12,7 @@ import (
 )
 
 type S3Downloader struct {
-	client *s3.Client
+	client IS3Client
 }
 
 func NewS3Downloader(ctx context.Context, endpoint, accessKey, secretKey, region string, secure bool) (S3Downloader, error) {
@@ -27,13 +27,13 @@ func NewS3Downloader(ctx context.Context, endpoint, accessKey, secretKey, region
 }
 
 // downloadBackupFromS3 скачивает выбранный бэкап из S3 в локальный файл
-func (d S3Downloader) Download(ctx context.Context, bucketName, backupRevisionStr, localFilePath string) error {
+func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, backupRevisionStr, localFilePath string) error {
 	var selectedBackupKey string
 
 	backupRevision, err := strconv.Atoi(backupRevisionStr)
 	// Если backupRevisionStr - число, выбираем бэкап по индексу
 	if err == nil && backupRevision >= 0 {
-		backupKeys, err := d.listBackupFiles(ctx, bucketName)
+		backupKeys, err := d.listBackupFiles(ctx, databaseName, bucketName)
 		if err != nil {
 			return fmt.Errorf("failed to list backup files from S3: %v", err)
 		}
@@ -72,11 +72,12 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, backupRevisionSt
 }
 
 // listBackupFiles получает список файлов бэкапов из S3
-func (d S3Downloader) listBackupFiles(ctx context.Context, bucketName string) ([]string, error) {
+func (d S3Downloader) listBackupFiles(ctx context.Context, backupDir, bucketName string) ([]string, error) {
 	var backupKeys []string
 
 	paginator := s3.NewListObjectsV2Paginator(d.client, &s3.ListObjectsV2Input{
 		Bucket: aws.String(bucketName),
+		Prefix: aws.String(ensureTrailingSlash(backupDir)),
 	})
 
 	for paginator.HasMorePages() {
