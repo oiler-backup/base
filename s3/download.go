@@ -56,7 +56,7 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 
 	for {
 		bytesRead, err := resp.Body.Read(buffer)
-		b, _ := fileContent.Write(buffer)
+		b, _ := fileContent.Write(buffer[:bytesRead])
 		fmt.Println(b)
 		fmt.Println()
 		fmt.Println()
