@@ -3,7 +3,7 @@ package s3
 import (
 	"context"
 	"fmt"
-	"os"
+	"io"
 	"sort"
 	"strconv"
 
@@ -27,7 +27,8 @@ func NewS3Downloader(ctx context.Context, endpoint, accessKey, secretKey, region
 }
 
 // downloadBackupFromS3 скачивает выбранный бэкап из S3 в локальный файл
-func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, backupRevisionStr, localFilePath string) error {
+func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, backupRevisionStr string, fileContent io.WriteCloser) error {
+	defer fileContent.Close()
 	var selectedBackupKey string
 
 	backupRevision, err := strconv.Atoi(backupRevisionStr)
@@ -51,15 +52,18 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 	}
 	defer resp.Body.Close()
 
-	file, err := os.Create(localFilePath)
-	if err != nil {
-		return fmt.Errorf("failed to create local file: %v", err)
-	}
-	defer file.Close()
+	buffer := make([]byte, partSize)
 
-	_, err = file.ReadFrom(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to write S3 object to local file: %v", err)
+	for {
+		bytesRead, _ := resp.Body.Read(buffer)
+		if bytesRead == 0 {
+			break
+		}
+
+		_, err := fileContent.Write(buffer[:bytesRead])
+		if err != nil {
+			return fmt.Errorf("failed to write S3 object to file: %v", err)
+		}
 	}
 
 	return nil
