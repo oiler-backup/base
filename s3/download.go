@@ -55,18 +55,12 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 	buffer := make([]byte, partSize)
 
 	for {
-		bytesRead, err := resp.Body.Read(buffer)
-		fmt.Println(bytesRead)
-		fmt.Println()
-		fmt.Println()
-		if bytesRead == 0 || err == io.EOF {
+		bytesRead, _ := resp.Body.Read(buffer)
+		if bytesRead == 0 {
 			break
 		}
 
-		b, err := fileContent.Write(buffer[:bytesRead])
-		fmt.Println(b)
-		fmt.Println()
-		fmt.Println()
+		_, err := fileContent.Write(buffer[:bytesRead])
 		if err != nil {
 			return fmt.Errorf("failed to write S3 object to file: %v", err)
 		}
