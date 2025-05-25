@@ -43,6 +43,9 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 	}
 
 	fmt.Println(selectedBackupKey)
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
 	resp, err := d.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(selectedBackupKey),
