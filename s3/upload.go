@@ -61,7 +61,7 @@ func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fi
 
 	for {
 		bytesRead, err := fileContent.Read(buffer)
-		if bytesRead == 0 || err == io.EOF {
+		if bytesRead == 0 && err == io.EOF {
 			break
 		}
 		if err != nil && err != io.EOF {
