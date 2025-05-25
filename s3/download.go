@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"sort"
 	"strconv"
 
@@ -28,7 +27,8 @@ func NewS3Downloader(ctx context.Context, endpoint, accessKey, secretKey, region
 }
 
 // downloadBackupFromS3 скачивает выбранный бэкап из S3 в локальный файл
-func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, backupRevisionStr string, fileContent *os.File) error {
+func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, backupRevisionStr string, fileContent io.WriteCloser) error {
+	defer fileContent.Close()
 	var selectedBackupKey string
 
 	backupRevision, err := strconv.Atoi(backupRevisionStr)
@@ -56,24 +56,15 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 
 	for {
 		bytesRead, err := resp.Body.Read(buffer)
-		b, _ := fileContent.Write(buffer[:bytesRead])
-		fmt.Println(b)
-		fmt.Println()
-		fmt.Println()
-		re, _ := os.Stat(fileContent.Name())
-		fmt.Println(re.Size())
 		if bytesRead == 0 || err == io.EOF {
 			break
 		}
 
+		_, err = fileContent.Write(buffer[:bytesRead])
 		if err != nil {
 			return fmt.Errorf("failed to write S3 object to file: %v", err)
 		}
 	}
-	// _, err = fileContent.ReadFrom(resp.Body)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to write S3 object to local file: %v", err)
-	// }
 
 	return nil
 }
