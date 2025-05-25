@@ -3,6 +3,7 @@ package s3
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"sort"
 	"strconv"
@@ -42,10 +43,6 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 		selectedBackupKey = backupRevisionStr
 	}
 
-	fmt.Println(selectedBackupKey)
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
 	resp, err := d.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(selectedBackupKey),
@@ -55,23 +52,24 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 	}
 	defer resp.Body.Close()
 
-	// buffer := make([]byte, partSize)
+	buffer := make([]byte, partSize)
 
-	// for {
-	// 	bytesRead, err := resp.Body.Read(buffer)
-	// 	if bytesRead == 0 || err == io.EOF {
-	// 		break
-	// 	}
+	for {
+		bytesRead, err := resp.Body.Read(buffer)
+		fmt.Println(bytesRead)
+		if bytesRead == 0 || err == io.EOF {
+			break
+		}
 
-	// 	_, err = fileContent.Write(buffer)
-	// 	if err != nil {
-	// 		return fmt.Errorf("failed to write S3 object to file: %v", err)
-	// 	}
-	// }
-	_, err = fileContent.ReadFrom(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to write S3 object to local file: %v", err)
+		_, err = fileContent.Write(buffer)
+		if err != nil {
+			return fmt.Errorf("failed to write S3 object to file: %v", err)
+		}
 	}
+	// _, err = fileContent.ReadFrom(resp.Body)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to write S3 object to local file: %v", err)
+	// }
 
 	return nil
 }
