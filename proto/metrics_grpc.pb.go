@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	BackupMetricsService_ReportSuccessfulBackup_FullMethodName = "/backupmetrics.BackupMetricsService/ReportSuccessfulBackup"
+	BackupMetricsService_ReportRestoreStatus_FullMethodName    = "/backupmetrics.BackupMetricsService/ReportRestoreStatus"
 )
 
 // BackupMetricsServiceClient is the client API for BackupMetricsService service.
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BackupMetricsServiceClient interface {
 	ReportSuccessfulBackup(ctx context.Context, in *BackupMetrics, opts ...grpc.CallOption) (*empty.Empty, error)
+	ReportRestoreStatus(ctx context.Context, in *RestoreMetrics, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type backupMetricsServiceClient struct {
@@ -48,11 +50,22 @@ func (c *backupMetricsServiceClient) ReportSuccessfulBackup(ctx context.Context,
 	return out, nil
 }
 
+func (c *backupMetricsServiceClient) ReportRestoreStatus(ctx context.Context, in *RestoreMetrics, opts ...grpc.CallOption) (*empty.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, BackupMetricsService_ReportRestoreStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackupMetricsServiceServer is the server API for BackupMetricsService service.
 // All implementations must embed UnimplementedBackupMetricsServiceServer
 // for forward compatibility.
 type BackupMetricsServiceServer interface {
 	ReportSuccessfulBackup(context.Context, *BackupMetrics) (*empty.Empty, error)
+	ReportRestoreStatus(context.Context, *RestoreMetrics) (*empty.Empty, error)
 	mustEmbedUnimplementedBackupMetricsServiceServer()
 }
 
@@ -65,6 +78,9 @@ type UnimplementedBackupMetricsServiceServer struct{}
 
 func (UnimplementedBackupMetricsServiceServer) ReportSuccessfulBackup(context.Context, *BackupMetrics) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportSuccessfulBackup not implemented")
+}
+func (UnimplementedBackupMetricsServiceServer) ReportRestoreStatus(context.Context, *RestoreMetrics) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReportRestoreStatus not implemented")
 }
 func (UnimplementedBackupMetricsServiceServer) mustEmbedUnimplementedBackupMetricsServiceServer() {}
 func (UnimplementedBackupMetricsServiceServer) testEmbeddedByValue()                              {}
@@ -105,6 +121,24 @@ func _BackupMetricsService_ReportSuccessfulBackup_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackupMetricsService_ReportRestoreStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestoreMetrics)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackupMetricsServiceServer).ReportRestoreStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackupMetricsService_ReportRestoreStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackupMetricsServiceServer).ReportRestoreStatus(ctx, req.(*RestoreMetrics))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackupMetricsService_ServiceDesc is the grpc.ServiceDesc for BackupMetricsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,6 +149,10 @@ var BackupMetricsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReportSuccessfulBackup",
 			Handler:    _BackupMetricsService_ReportSuccessfulBackup_Handler,
+		},
+		{
+			MethodName: "ReportRestoreStatus",
+			Handler:    _BackupMetricsService_ReportRestoreStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
