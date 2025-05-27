@@ -64,3 +64,38 @@ func (mr MetricsReporter) ReportStatus(ctx context.Context, metricName string, s
 
 	return nil
 }
+
+// ReportStatus sends a message to Kubernetes Operator core with parameters required to generate Prometheus Metrics.
+func (mr MetricsReporter) ReportRestoreStatus(ctx context.Context, metricName string, success bool, timeElapsed int64) error { // coverage-ignore
+	opts := make([]grpc.DialOption, 0, 1)
+	if !mr.Secure {
+		opts = append(opts,
+			grpc.WithTransportCredentials(
+				insecure.NewCredentials(),
+			),
+		)
+	}
+	conn, err := grpc.NewClient(
+		mr.CoreAddr,
+		opts...,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	client := pt.NewBackupMetricsServiceClient(conn)
+
+	req := pt.RestoreMetrics{
+		RestoreName: metricName,
+		Success:     success,
+		TimeElapsed: timeElapsed,
+	}
+
+	_, err = client.ReportRestoreStatus(ctx, &req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
