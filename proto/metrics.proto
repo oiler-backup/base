@@ -8,10 +8,17 @@ import "google/protobuf/empty.proto";
 
 service BackupMetricsService {
     rpc ReportSuccessfulBackup (BackupMetrics) returns (google.protobuf.Empty);
+    rpc ReportRestoreStatus (RestoreMetrics) returns (google.protobuf.Empty);
 }
 
 message BackupMetrics {
     string backup_name = 1;
+    bool success = 2;
+    int64 time_elapsed = 3;
+}
+
+message RestoreMetrics {
+    string restore_name = 1;
     bool success = 2;
     int64 time_elapsed = 3;
 }
