@@ -11,10 +11,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
+// S3Downloader represents a downloader for files stored in AWS S3.
 type S3Downloader struct {
 	client IS3Client
 }
 
+// NewS3Downloader creates and returns a new instance of S3Downloader.
+// It initializes the underlying AWS S3 client with the provided configuration.
 func NewS3Downloader(ctx context.Context, endpoint, accessKey, secretKey, region string, secure bool) (S3Downloader, error) {
 	client, err := NewS3Client(ctx, endpoint, accessKey, secretKey, region, secure)
 	if err != nil {
@@ -26,20 +29,20 @@ func NewS3Downloader(ctx context.Context, endpoint, accessKey, secretKey, region
 	}, nil
 }
 
-// downloadBackupFromS3 скачивает выбранный бэкап из S3 в локальный файл
+// Download downloads the specified backup from S3 to a local file.
+// If backupRevisionStr is a number, it selects the backup by index.
+// If backupRevisionStr is a string, it looks for a backup with that name.
 func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, backupRevisionStr string, fileContent io.WriteCloser) error {
 	defer fileContent.Close()
 	var selectedBackupKey string
 
 	backupRevision, err := strconv.Atoi(backupRevisionStr)
-	// Если backupRevisionStr - число, выбираем бэкап по индексу
 	if err == nil && backupRevision >= 0 {
 		selectedBackupKey, err = d.GetBackupByRevision(ctx, backupRevision, databaseName, bucketName)
 		if err != nil {
 			return fmt.Errorf("failed to list backup files from S3: %v", err)
 		}
 	} else {
-		// Если backupRevisionStr - строка, ищем бэкап с таким именем
 		selectedBackupKey = backupRevisionStr
 	}
 
@@ -69,7 +72,8 @@ func (d S3Downloader) Download(ctx context.Context, bucketName, databaseName, ba
 	return nil
 }
 
-// listBackupFiles получает список файлов бэкапов из S3
+// GetBackupByRevision retrieves the key of the backup file at the specified revision index.
+// It lists all backup files in the specified directory and sorts them by modification time in descending order.
 func (d S3Downloader) GetBackupByRevision(ctx context.Context, backupRevision int, backupDir, bucketName string) (string, error) {
 	listOutput, err := d.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
 		Bucket: aws.String(bucketName),
