@@ -49,6 +49,8 @@ message BackupRestore {
 
   string backupRevision = 13;
   string core_addr = 14;
+  string auto_restore = 15;
+  string schedule = 16;
 }
 
 message BackupRestoreResponse {

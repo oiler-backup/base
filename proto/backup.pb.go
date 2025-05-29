@@ -295,6 +295,8 @@ type BackupRestore struct {
 	S3BucketName   string                 `protobuf:"bytes,12,opt,name=s3_bucket_name,json=s3BucketName,proto3" json:"s3_bucket_name,omitempty"`
 	BackupRevision string                 `protobuf:"bytes,13,opt,name=backupRevision,proto3" json:"backupRevision,omitempty"`
 	CoreAddr       string                 `protobuf:"bytes,14,opt,name=core_addr,json=coreAddr,proto3" json:"core_addr,omitempty"`
+	AutoRestore    string                 `protobuf:"bytes,15,opt,name=auto_restore,json=autoRestore,proto3" json:"auto_restore,omitempty"`
+	Schedule       string                 `protobuf:"bytes,16,opt,name=schedule,proto3" json:"schedule,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -413,6 +415,20 @@ func (x *BackupRestore) GetCoreAddr() string {
 	return ""
 }
 
+func (x *BackupRestore) GetAutoRestore() string {
+	if x != nil {
+		return x.AutoRestore
+	}
+	return ""
+}
+
+func (x *BackupRestore) GetSchedule() string {
+	if x != nil {
+		return x.Schedule
+	}
+	return ""
+}
+
 type BackupRestoreResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
@@ -501,7 +517,7 @@ const file_proto_backup_proto_rawDesc = "" +
 	"\x13UpdateBackupRequest\x12/\n" +
 	"\arequest\x18\x01 \x01(\v2\x15.backup.BackupRequestR\arequest\x12!\n" +
 	"\fcronjob_name\x18\x02 \x01(\tR\vcronjobName\x12+\n" +
-	"\x11cronjob_namespace\x18\x03 \x01(\tR\x10cronjobNamespace\"\x83\x03\n" +
+	"\x11cronjob_namespace\x18\x03 \x01(\tR\x10cronjobNamespace\"\xc2\x03\n" +
 	"\rBackupRestore\x12\x15\n" +
 	"\x06db_uri\x18\x01 \x01(\tR\x05dbUri\x12\x17\n" +
 	"\adb_port\x18\x02 \x01(\x03R\x06dbPort\x12\x17\n" +
@@ -516,7 +532,9 @@ const file_proto_backup_proto_rawDesc = "" +
 	"\rs3_secret_key\x18\v \x01(\tR\vs3SecretKey\x12$\n" +
 	"\x0es3_bucket_name\x18\f \x01(\tR\fs3BucketName\x12&\n" +
 	"\x0ebackupRevision\x18\r \x01(\tR\x0ebackupRevision\x12\x1b\n" +
-	"\tcore_addr\x18\x0e \x01(\tR\bcoreAddr\"o\n" +
+	"\tcore_addr\x18\x0e \x01(\tR\bcoreAddr\x12!\n" +
+	"\fauto_restore\x18\x0f \x01(\tR\vautoRestore\x12\x1a\n" +
+	"\bschedule\x18\x10 \x01(\tR\bschedule\"o\n" +
 	"\x15BackupRestoreResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x19\n" +
 	"\bjob_name\x18\x02 \x01(\tR\ajobName\x12#\n" +
