@@ -41,6 +41,16 @@ func (m *MockS3Client) GetObject(ctx context.Context, params *s3.GetObjectInput,
 	return args.Get(0).(*s3.GetObjectOutput), args.Error(1)
 }
 
+func (m *MockS3Client) AbortMultipartUpload(ctx context.Context, params *s3.AbortMultipartUploadInput, optFns ...func(*s3.Options)) (*s3.AbortMultipartUploadOutput, error) {
+	args := m.Called(ctx, params)
+	return args.Get(0).(*s3.AbortMultipartUploadOutput), args.Error(1)
+}
+
+func (m *MockS3Client) PutObject(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error) {
+	args := m.Called(ctx, params)
+	return args.Get(0).(*s3.PutObjectOutput), args.Error(1)
+}
+
 type MockS3Uploader struct {
 	mock.Mock
 }
