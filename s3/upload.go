@@ -5,8 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"sort"
-	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -52,12 +50,10 @@ func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fi
 	}
 
 	uploadID := createOutput.UploadId
-	var wg sync.WaitGroup
-	var mu sync.Mutex
 	completedParts := []types.CompletedPart{}
 
 	buffer := make([]byte, partSize)
-	partNumber := 1
+	var partNumber int32 = 1
 
 	for {
 		bytesRead, err := fileContent.Read(buffer)
@@ -68,40 +64,29 @@ func (u S3Uploader) Upload(ctx context.Context, bucketName, objectKey string, fi
 			fmt.Println("Failed while reading file content:", err)
 			return err
 		}
+		partInput := &s3.UploadPartInput{
+			Bucket:     aws.String(bucketName),
+			Key:        aws.String(objectKey),
+			PartNumber: &partNumber,
+			UploadId:   uploadID,
+			Body:       bytes.NewReader(buffer[:bytesRead]),
+		}
+		partResp, err := u.client.UploadPart(ctx, partInput)
+		if err != nil {
+			fmt.Printf("Failed to load part %d: %v\n", partNumber, err)
+		}
 
-		wg.Add(1)
-		go func(partNumber int32, data []byte, bytesRead int) {
-			defer wg.Done()
-
-			partInput := &s3.UploadPartInput{
-				Bucket:     aws.String(bucketName),
-				Key:        aws.String(objectKey),
-				PartNumber: &partNumber,
-				UploadId:   uploadID,
-				Body:       bytes.NewReader(data[:bytesRead]),
-			}
-			partResp, err := u.client.UploadPart(ctx, partInput)
-			if err != nil {
-				fmt.Printf("Failed to load part %d: %v\n", partNumber, err)
-				return
-			}
-
-			mu.Lock()
-			completedParts = append(completedParts, types.CompletedPart{
-				ETag:       partResp.ETag,
-				PartNumber: &partNumber,
-			})
-			mu.Unlock()
-		}(int32(partNumber), buffer, bytesRead)
+		completedParts = append(completedParts, types.CompletedPart{
+			ETag:       partResp.ETag,
+			PartNumber: &partNumber,
+		})
 
 		partNumber++
 	}
 
-	wg.Wait()
-
-	sort.Slice(completedParts, func(i, j int) bool {
-		return *completedParts[i].PartNumber < *completedParts[j].PartNumber
-	})
+	// sort.Slice(completedParts, func(i, j int) bool {
+	// 	return *completedParts[i].PartNumber < *completedParts[j].PartNumber
+	// })
 	completeInput := &s3.CompleteMultipartUploadInput{
 		Bucket:   aws.String(bucketName),
 		Key:      aws.String(objectKey),
